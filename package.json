@@ -1,0 +1,60 @@
+{
+  "name": "coderabbit-ts",
+  "version": "0.1.0",
+  "description": "Typed, dependency-free TypeScript client for the CodeRabbit Platform API, generated from the published OpenAPI spec.",
+  "license": "MIT",
+  "author": "Alexandr Khrustalev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SanderSaxBuilds/coderabbit-ts.git"
+  },
+  "keywords": [
+    "coderabbit",
+    "code-review",
+    "api-client",
+    "openapi",
+    "typescript"
+  ],
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "spec/openapi.json.gz",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "typecheck": "node scripts/generate.mjs && tsc -p tsconfig.json",
+    "build": "node scripts/generate.mjs && node scripts/clean.mjs && tsc -p tsconfig.esm.json && tsc -p tsconfig.cjs.json && node scripts/postbuild.mjs",
+    "test": "node scripts/generate.mjs && node --test --test-reporter=spec \"test/**/*.test.ts\"",
+    "test:dist": "node scripts/smoke-dist.mjs && tsc -p consumer-check/tsconfig.esm.json && tsc -p consumer-check/tsconfig.cjs.json",
+    "check": "npm run typecheck && npm test && npm run build && npm run test:dist",
+    "update-spec": "node scripts/update-spec.mjs",
+    "prepare": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3"
+  }
+}
