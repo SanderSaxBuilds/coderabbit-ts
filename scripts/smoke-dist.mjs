@@ -19,6 +19,6 @@ for (const [label, mod] of [['cjs', cjs], ['esm', esm]]) {
   assert.equal(seen.url, 'https://api.coderabbit.ai/v1/me');
   assert.equal(seen.init.headers['x-coderabbitai-api-key'], 'test-key');
   assert.equal(me.principal.type, 'api_key');
-  assert.equal(Object.keys(mod.OPERATIONS).length, 175);
+  assert.equal(Object.keys(mod.OPERATIONS).length, 179);
   console.log(`${label}: ok`);
 }

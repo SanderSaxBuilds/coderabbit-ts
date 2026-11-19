@@ -1,6 +1,6 @@
 {
   "name": "coderabbit-ts",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Typed, dependency-free TypeScript client for the CodeRabbit Platform API, generated from the published OpenAPI spec.",
   "license": "MIT",
   "author": "Alexandr Khrustalev",

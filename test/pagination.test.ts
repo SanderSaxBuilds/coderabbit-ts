@@ -23,15 +23,15 @@ describe('cursor pagination', () => {
     assert.equal(calls[1]!.url.searchParams.get('limit'), '2');
   });
 
-  it('follows next_page_token through empty pages (list_repositories)', async () => {
+  it('follows next_cursor through empty pages (list_repositories)', async () => {
     const pages = [
-      { data: [], next_page_token: 't2' },
-      { data: [{ id: 'r1' }], next_page_token: null },
+      { data: [], next_cursor: 't2' },
+      { data: [{ id: 'r1' }], next_cursor: null },
     ];
     const { client, calls } = mockClient((_r, i) => json(pages[i]));
-    const repos = await collect(client.items('list_repositories', { page_size: 50 }));
+    const repos = await collect(client.items('list_repositories', { limit: 50 }));
     assert.equal(repos.length, 1);
-    assert.equal(calls[1]!.url.searchParams.get('page_token'), 't2');
+    assert.equal(calls[1]!.url.searchParams.get('cursor'), 't2');
   });
 
   it('reads the camelCase nextCursor used by triage rules', async () => {
@@ -100,51 +100,29 @@ describe('page-number pagination', () => {
     assert.deepEqual(calls.map((c) => c.url.searchParams.get('page')), ['1', '2']);
   });
 
-  it('uses pagination.totalPages (security findings)', async () => {
-    const { client, calls } = mockClient((r) => json({ items: [{}], pagination: { page: Number(r.url.searchParams.get('page')), pageSize: 1, total: 3, totalPages: 3 } }));
-    const rows = await collect(client.items('list_security_findings'));
-    assert.equal(rows.length, 3);
-    assert.equal(calls.length, 3);
-  });
-
-  it('uses pagination.hasNextPage (security scans)', async () => {
-    const pages = [
-      { data: [{}], pagination: { hasNextPage: true } },
-      { data: [{}], pagination: { hasNextPage: false } },
-    ];
-    const { client, calls } = mockClient((_r, i) => json(pages[i]));
-    await collect(client.pages('list_security_scans'));
-    assert.equal(calls.length, 2);
-  });
-
-  it('uses nextPage (architecture repositories)', async () => {
-    const pages = [
-      { repositories: [{}], nextPage: 2 },
-      { repositories: [{}], nextPage: null },
-    ];
-    const { client, calls } = mockClient((_r, i) => json(pages[i]));
-    await collect(client.pages('list_architecture_repositories'));
-    assert.deepEqual(calls.map((c) => c.url.searchParams.get('page')), ['1', '2']);
-  });
-
-  it('uses total (member budgets) and totalCount (learnings)', async () => {
-    const budget = mockClient(() => json({ data: [{}, {}], total: 4, page: 1, page_size: 2 }));
-    assert.equal((await collect(budget.client.items('list_usage_budget_members'))).length, 4);
-    assert.equal(budget.calls.length, 2);
-    const learn = mockClient(() => json({ items: [{}], totalCount: 2 }));
-    assert.equal((await collect(learn.client.items('list_learnings'))).length, 2);
-    assert.deepEqual(learn.calls.map((c) => c.url.searchParams.get('page')), ['1', '2']);
-  });
-
-  it('starts the Verify bug history at page 0, as its schema says', async () => {
-    const pages = [
-      { total: 2, affected_run_count: 1, observations: [{}] },
-      { total: 2, affected_run_count: 1, observations: [{}] },
-    ];
-    const { client, calls } = mockClient((_r, i) => json(pages[i]));
-    await collect(client.pages('get_verify_bug_history', { repository_id: 'r', bug_id: 'b' }));
-    assert.deepEqual(calls.map((c) => c.url.searchParams.get('page')), ['0', '1']);
-  });
+  // These lists paged by number until the November 2026 spec, which moved
+  // them to cursor and next_cursor.
+  for (const [op, key, input] of [
+    ['list_security_findings', 'items', {}],
+    ['list_security_scans', 'data', {}],
+    ['list_architecture_repositories', 'repositories', {}],
+    ['list_usage_budget_members', 'data', {}],
+    ['list_learnings', 'items', {}],
+    ['get_verify_bug_history', 'observations', { repository_id: 'r', bug_id: 'b' }],
+  ] as const) {
+    it(`follows next_cursor (${op})`, async () => {
+      const pages = [
+        { [key]: [{}], total: 2, next_cursor: 'c2' },
+        { [key]: [{}], total: 2, next_cursor: null },
+      ];
+      const { client, calls } = mockClient((_r, i) => json(pages[i]));
+      await collect(client.pages(op as never, input as never));
+      assert.equal(calls.length, 2);
+      assert.equal(calls[0]!.url.searchParams.get('cursor'), null);
+      assert.equal(calls[1]!.url.searchParams.get('cursor'), 'c2');
+      assert.equal(calls[1]!.url.searchParams.get('page'), null);
+    });
+  }
 
   it('stops on an empty page', () => {
     assert.equal(nextPageNumber({ data: [] }, 3, 1, 10, 0), undefined);

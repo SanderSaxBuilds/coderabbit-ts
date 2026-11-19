@@ -47,10 +47,26 @@ export const TAG_NAMESPACE = {
   Administration: 'administration',
   'User Management': 'users',
   'Audit Logs': 'auditLogs',
+  // Tag names used by the spec since November 2026. Operations that existed
+  // before keep their namespace through scripts/namespaces.json, so these only
+  // place new operations.
+  'Coding Agent': 'code',
+  'Knowledge Base': 'knowledge',
+  'Organizations and repositories': 'organizations',
+  'Pull requests and reviews': 'pullRequests',
+  'Usage and metrics': 'usage',
+  'Users and roles': 'users',
 };
 
-// Three operations carry no tag in the spec. They are placed next to the
-// operations the docs group them with.
+// Namespace of every operation in the first published client. The spec later
+// regrouped its tags, and keeping these stops client.<namespace>.<method>
+// calls from moving between releases.
+export const OPERATION_NAMESPACE = JSON.parse(
+  readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'namespaces.json'), 'utf8'),
+);
+
+// Operations that once carried no tag in the spec. They are placed next to the
+// operations the docs group them with. The current spec tags everything.
 export const UNTAGGED_NAMESPACE = {
   'report-generate': 'reports',
   'review-metrics': 'metrics',
@@ -130,7 +146,7 @@ export function collectOperations(spec) {
       const id = op.operationId;
       if (!id) fail(`${method.toUpperCase()} ${p} has no operationId`);
       const tag = op.tags?.[0];
-      const namespace = tag ? TAG_NAMESPACE[tag] : UNTAGGED_NAMESPACE[id];
+      const namespace = OPERATION_NAMESPACE[id] ?? (tag ? TAG_NAMESPACE[tag] : UNTAGGED_NAMESPACE[id]);
       if (!namespace) fail(`no namespace for operation ${id} (tag ${tag ?? 'none'})`);
 
       const params = [...shared, ...(op.parameters || [])].map(resolve);

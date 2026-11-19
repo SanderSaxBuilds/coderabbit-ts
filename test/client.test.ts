@@ -23,13 +23,6 @@ describe('configuration', () => {
     assert.equal(calls[0]!.url.href, 'http://localhost:8080/proxy/v1/me');
   });
 
-  it('keeps the /api/v1 prefix of the report.generate route', async () => {
-    const { client, calls } = mockClient(() => json([]));
-    await client.reports.reportGenerate({ body: { from: '2026-01-01', to: '2026-01-31' } as never });
-    assert.equal(calls[0]!.url.pathname, '/api/v1/report.generate');
-    assert.equal(calls[0]!.method, 'POST');
-  });
-
   it('requires an API key', () => {
     const saved = process.env.CODERABBIT_API_KEY;
     delete process.env.CODERABBIT_API_KEY;
@@ -111,14 +104,14 @@ describe('request building', () => {
 
   it('serializes booleans and numbers', async () => {
     const { client, calls } = mockClient();
-    await client.code.listCodeTasks({ include_archived: true, page_size: 5 });
+    await client.code.listCodeTasks({ include_archived: true, limit: 5 });
     assert.equal(calls[0]!.url.searchParams.get('include_archived'), 'true');
-    assert.equal(calls[0]!.url.searchParams.get('page_size'), '5');
+    assert.equal(calls[0]!.url.searchParams.get('limit'), '5');
   });
 
   it('skips undefined values', async () => {
     const { client, calls } = mockClient();
-    await client.code.listCodeTasks({ page_size: undefined, repository_id: 'r' });
+    await client.code.listCodeTasks({ limit: undefined, repository_id: 'r' });
     assert.equal(calls[0]!.url.search, '?repository_id=r');
   });
 

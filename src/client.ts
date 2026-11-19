@@ -9,11 +9,12 @@ import type { ClientOptions, FetchLike, OrgSelector, PaginationOptions, RequestO
 
 export const DEFAULT_TIMEOUT_MS = 60_000;
 
-/** Operations the spec describes as slow. Their default timeout is raised to this value. */
-const SLOW_OPERATIONS: Readonly<Record<string, number>> = {
-  // "This endpoint may take up to 10 minutes to respond depending on the data volume."
-  'report-generate': 600_000,
-};
+/**
+ * Operations the spec describes as slow, with the default timeout raised to the
+ * given value. Empty since the spec dropped report-generate, the only one that
+ * said it could take up to 10 minutes.
+ */
+const SLOW_OPERATIONS: Readonly<Record<string, number>> = {};
 
 type ArgsFor<K extends OperationId, O> = {} extends OperationInputs[K]
   ? [input?: OperationInputs[K], options?: O]

@@ -25,7 +25,7 @@ export interface ClientOptions {
   org?: OrgSelector;
   /** Custom fetch implementation. Defaults to the global fetch. */
   fetch?: FetchLike;
-  /** Per-attempt timeout in milliseconds. Default 60000. `report-generate` defaults to 600000 because the spec says it can take up to 10 minutes. */
+  /** Per-attempt timeout in milliseconds. Default 60000. */
   timeoutMs?: number;
   /** Retries after the first attempt for 429, 5xx and network errors. Default 2. */
   maxRetries?: number;

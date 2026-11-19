@@ -181,18 +181,6 @@ describe('timeouts and cancellation', () => {
     assert.equal(err.timeoutMs, 15);
   });
 
-  it('gives report-generate the 10 minute timeout the spec describes', async () => {
-    const calls = { n: 0 };
-    const client = new CodeRabbit({ apiKey: 'k', fetch: hanging(calls), maxRetries: 0 });
-    const controller = new AbortController();
-    const pending = client.reports.reportGenerate({ body: {} as never }, { signal: controller.signal }).catch((e: unknown) => e);
-    await new Promise((r) => setTimeout(r, 30));
-    controller.abort(new Error('stop'));
-    const err = await pending;
-    assert.ok(!(err instanceof CodeRabbitTimeoutError));
-    assert.equal((err as Error).message, 'stop');
-  });
-
   it('honours a caller AbortSignal without retrying', async () => {
     const calls = { n: 0 };
     const client = new CodeRabbit({ apiKey: 'k', fetch: hanging(calls), maxRetries: 5 });
